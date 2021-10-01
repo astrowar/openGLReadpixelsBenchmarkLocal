@@ -41,6 +41,9 @@ namespace hdrnet{
             GLuint ssbo;
             float ssbo_buffer[25000];
 
+            GLuint m_ids[2];
+            GLuint m_active;
+
             float pVertex_[8] = {1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f};
             float pTexCoord_[8] = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
         };

@@ -19,7 +19,7 @@ namespace hdrnet{
 
       int init(bilateral_slice_apply_data* data);  //init all contexts, shaders , buffers and texture IDs
       int prepare(bilateral_slice_apply_data* data);  //fill buffers
-      int eval(bilateral_slice_apply_data *data,  const float*   grid ,  const float*   guide , const float*  input ,  const float*  output );          //execute shader
+      int eval(bilateral_slice_apply_data *data,  const float*   grid ,  const float*   guide , const float*  input ,    float*  output );          //execute shader
       int free(bilateral_slice_apply_data* data);  // free all contexts, shaders, buffers ans textureIds
 
   }

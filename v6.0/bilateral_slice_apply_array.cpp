@@ -152,6 +152,10 @@ void main() {
     coeff_stride += 1;
   }
 
+    colorOut = texture(input_texture, texCoord).xyz  ;
+    return ;
+
+
   // X and Y are the imagem cordinades of actual fragment in PIXELS
   int x = int(gl_FragCoord.x);
   int y = int(gl_FragCoord.y);
@@ -345,12 +349,26 @@ void main() {
                 throw;
             }
 
+
+        glGenBuffers(2, data->m_ids);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, data->m_ids[0]);
+        glBufferData(GL_PIXEL_PACK_BUFFER, data->output_height_ * data->output_height_ * 4 *sizeof(float), 0, GL_STREAM_READ);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, data->m_ids[1]);
+        glBufferData(GL_PIXEL_PACK_BUFFER, data->output_height_ * data->output_height_ * 4 *sizeof(float), 0, GL_STREAM_READ);
+
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+  data->m_active = 0;
+
+
+
+
+
             glBindFramebuffer(GL_FRAMEBUFFER, data->framebuffer_);
             glViewport(0, 0, data->output_width_, data->output_height_);
             return 0; //no error
         }
 
-        int eval(bilateral_slice_apply_data *data, const float *grid, const float *guide, const float *input, const float *output)
+        int eval(bilateral_slice_apply_data *data, const float *grid, const float *guide, const float *input,   float *output)
         {
             //int bs, int gh, int gw, int gd, int input_chans, int output_chans, bool has_offset, int h, int w, const float* const grid, const float* const guide, const float* const input,    float* const out
 
@@ -363,14 +381,14 @@ void main() {
 
             if (input != nullptr){
               glActiveTexture(GL_TEXTURE1);
-              glBindTexture(GL_TEXTURE_2D, data->input_texture_);
-              glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, data->output_width_, data->output_height_, GL_RGB, GL_FLOAT, input);
+            glBindTexture(GL_TEXTURE_2D, data->input_texture_);
+             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, data->output_width_, data->output_height_, GL_RGB, GL_FLOAT, input);
             }
 
             if (guide != nullptr) {
               glActiveTexture(GL_TEXTURE2);
-              glBindTexture(GL_TEXTURE_2D, data->guide_texture_);
-              glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, data->output_width_, data->output_height_, GL_RED, GL_FLOAT, guide);
+             glBindTexture(GL_TEXTURE_2D, data->guide_texture_);
+             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, data->output_width_, data->output_height_, GL_RED, GL_FLOAT, guide);
             }
 
             if (grid !=nullptr){
@@ -410,8 +428,40 @@ void main() {
             glClear(GL_COLOR_BUFFER_BIT);
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-            glReadPixels(0, 0, data->output_width_ , data->output_height_, GL_RGB, GL_FLOAT, (GLvoid *)output);
+if (false ){
+          glReadPixels(0, 0, data->output_width_ , data->output_height_, GL_RGB, GL_FLOAT, (GLvoid *)output);
+}
+else{
 
+
+//MAP READ PIXELS
+      int index = (data->m_active ) % 2;
+      int nextIndex = (data->m_active + 1) % 2;
+
+     // glReadBuffer(GL_FRONT);
+
+      // read pixels from framebuffer to PBO
+      // glReadPixels() should return immediately.
+      glBindBuffer(GL_PIXEL_PACK_BUFFER, data->m_ids[index]);
+      glReadPixels(0, 0, data->output_width_ , data->output_height_, GL_RGB, GL_FLOAT, 0);
+
+      // map the PBO to process its data by CPU
+      glBindBuffer(GL_PIXEL_PACK_BUFFER, data->m_ids[nextIndex]);
+      GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+      if(ptr != nullptr)
+      {
+          //for(int i =0; i< 500;++i) output[i]  = ptr[i];
+          memcpy( output, ptr, data->output_width_ * data->output_height_* sizeof(float));
+          glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+      }
+      else{
+        printf("fail...\n");
+      }
+
+      // back to conventional pixel operation
+      glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+      data->m_active++;
+}
 
            //glutSwapBuffers();
             return 0;

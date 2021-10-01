@@ -17,7 +17,7 @@
 #include <random>
 
 
-#define VALIDADE 1
+#define VALIDADE 0
 
 void BilateralSliceApplyKernel_ORG(
     const float *grid, const float *guide, const float *input,
@@ -55,7 +55,10 @@ int execute_test_profile( int w, int h ) {
     for (int i = 0; i < gw * gh * gd * g_channels  ; i++) grid[i] = dist( e2 )* dist( e2 );
     for (int i = 0; i < w * h; i++) guide[i] = dist( e2 );
     for (int i = 0; i < w * h * input_channels; i++) input[i] = dist( e2 );
-    for (int i = 0; i < w * h * output_channels; i++) output[i] = dist( e2 );
+    for (int i = 0; i < w * h * output_channels; i++) output[i] = -1.0f;
+
+
+
 
 
 
@@ -63,7 +66,7 @@ int execute_test_profile( int w, int h ) {
     using std::chrono::duration_cast;
     using std::chrono::duration;
     using std::chrono::milliseconds;
-    int frames_count = 100;
+    int frames_count = 1000;
 
     std::cout << "Start Computation" << std::endl;
     hdrnet::bilateral_slice_apply::eval( data, grid, guide, input, output );
