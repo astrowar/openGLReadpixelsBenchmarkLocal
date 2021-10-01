@@ -1,0 +1,24 @@
+resolution 60x101
+
+Baseline    :       0.4422ms
+Full bypass :       0.1394ms , return in first line
+bypass 1  :         0.148ms  , copy input to output buffer
+bypass 2  :         0.2266ms , no grid texture readings
+
+using texture array for grid storage
+
+texture_array_1 : 0.2980ms  texture as array for each cross channel (in *out ), loop reorder, cached values
+texture_array_2 : 1.2248ms  texture as array for each cross channel (in *out ),  cached values
+texture_array_3 : 0.2870ms  texture as array for each cross channel (in *out ), loop reorder, cached values
+texture_array_4 : 0.1849ms  texture as array for each cross channel (in *out ), loop reorder, cached values, not reload grid value
+texture_array_3 : 0.1710ms  texture as array for each cross channel (in *out ), loop reorder, cached values, GL_SHADER_STORAGE_BUFFER + GL_DYNAMIC_COPY
+
+Resultados
+resolution    720 x 1024
+
+Baseline    :   30.1258ms
+Full bypass :    8.08335ms   return in first line in shader code
+texture_array_1 : 15.4636ms  texture as array for each cross channel (in *out ), loop reorder, cached values
+texture_array_2 : 10.2056ms  , same as texture_array_4 , but without any texture upload
+
+shader_storage_1:  12.5078ms, same as texture_array_2, but using GL_SHADER_STORAGE_BUFFER + GL_DYNAMIC_COPY for grid transfers
